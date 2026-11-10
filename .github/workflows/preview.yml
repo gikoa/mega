@@ -1,0 +1,56 @@
+# The reviewer reads the digest from a copy, not from the lane (plan.md § 3).
+# The page is rendered here and deployed straight to Pages, so no preview file is ever
+# committed to the repo — there its lane marker could never be taken off again (ADR 0003).
+name: preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      night:
+        description: Which night to publish
+        default: '2026-10-28'
+      marker:
+        description: LANE_MARKER for the banner. Empty publishes the page with no marker (ADR 0003 clean-up).
+        default: ''
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time, and never cancel one half-way: the link must always hold a whole page.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Render the page
+        env:
+          NIGHT: ${{ inputs.night }}
+          LANE_ID: lane-07
+          LANE_MARKER: ${{ inputs.marker }}
+          PORT: '8787'
+        run: |
+          npm start > server.log 2>&1 &
+          server=$!
+          for i in $(seq 1 60); do curl -fsS http://localhost:8787/health >/dev/null && break; sleep 1; done
+          mkdir -p out
+          curl -fsS "http://localhost:8787/digest/$NIGHT" -o out/index.html
+          kill "$server" || true
+          grep -q '<table' out/index.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+      - id: deploy
+        uses: actions/deploy-pages@v4
