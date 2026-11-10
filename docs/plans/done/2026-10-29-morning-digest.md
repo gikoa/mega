@@ -1,8 +1,9 @@
 ---
 plan: morning-digest
-status: ready
+status: done
 owner: rook
 opened: 2026-10-29
+closed: 2026-11-10
 ---
 
 # Morning digest
@@ -77,3 +78,26 @@ page again with `LANE_MARKER` unset (the banner reads "no marker set") and uploa
 link. Move this plan to `docs/plans/done/` with its issue list.
 
 Done when: the preview link no longer shows the lane marker.
+
+## Issues
+
+| # | Issue | Blocked by | Worker | Closed |
+|---|-------|-----------|--------|--------|
+| 1 | Digest row contract | — | claude-code · claude-opus-5 · low | 2026-11-10 |
+| 2 | Run log reader | #1 | claude-code subagent · model not pinned · medium | 2026-11-10 |
+| 3 | Digest page | #1 | claude-code subagent · claude-sonnet-5-5 · low | 2026-11-10 |
+| 4 | Digest JSON | #1 | claude-code subagent · claude-sonnet-5-5 · low | 2026-11-10 |
+| 5 | Board link per night | #1 | claude-code subagent · claude-sonnet-5-5 · low | 2026-11-10 |
+| 6 | Route tests | #3, #4 | claude-code subagent · claude-sonnet-5-5 · low | 2026-11-10 |
+| 7 | Preview for review | #2, #3, #4, #5, #6 | claude-code · claude-opus-5 · medium | 2026-11-10 |
+| 8 | Take the lane marker off the preview | #7 | claude-code · claude-opus-5 · low | 2026-11-10 |
+
+#1 was not a section of its own in the plan: section 1 asks for `src/digest/types.ts` first so the four
+parts of section 2 can start at once, so the split made that its own issue and #3-#5 cite it by number.
+
+#2's model was not pinned when the worker ran, so it is not recorded. Every later issue pinned one.
+
+The preview is published by the `preview` workflow, not from a file in the repo: a committed preview
+keeps its lane marker in git history forever, and ADR 0003 requires the marker to come off. The
+workflow renders the page and deploys it straight to Pages, so the same link was republished with
+`LANE_MARKER` unset once the review was in.
